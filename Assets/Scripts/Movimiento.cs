@@ -10,6 +10,8 @@ public class Movimiento : MonoBehaviour
     private Rigidbody rb;
     private Vector2 moveInput = Vector2.zero;
 
+    public float MultiplicadorSprint = 2f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -21,9 +23,9 @@ public class Movimiento : MonoBehaviour
         moveInput = Vector2.zero;
 
         if (Keyboard.current.wKey.isPressed) moveInput.y += 1f;
-        if (Keyboard.current.sKey.isPressed) moveInput.y -= 1f;
-        if (Keyboard.current.aKey.isPressed) moveInput.x -= 1f;
-        if (Keyboard.current.dKey.isPressed) moveInput.x += 1f;
+        if (Keyboard.current.sKey.isPressed) moveInput.y -= 0.5f;
+        if (Keyboard.current.aKey.isPressed) moveInput.x -= 0.75f;
+        if (Keyboard.current.dKey.isPressed) moveInput.x += 0.75f;
 
         if (detectorSuelo.Grounded && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
@@ -34,20 +36,41 @@ public class Movimiento : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (detectorSuelo.Grounded)
+        if (detectorSuelo.Grounded) 
         {
-            Vector3 direccion = transform.forward * moveInput.y + transform.right * moveInput.x;
+            if (Keyboard.current.shiftKey.wasPressedThisFrame)
+            {
+                Vector3 direccion = transform.forward * moveInput.y + transform.right * moveInput.x;
 
-            if (direccion.sqrMagnitude > 1f)
-                direccion = direccion.normalized;
+                if (direccion.sqrMagnitude > 1f)
+                {
+                    direccion = direccion.normalized;
+                }
 
-            Vector3 movimiento = direccion * velocidadMovimiento * Time.fixedDeltaTime;
-            Vector3 nuevaPos = rb.position + movimiento;
-            nuevaPos.y = rb.position.y;
+                Vector3 movimiento = direccion * velocidadMovimiento * MultiplicadorSprint * Time.fixedDeltaTime;
+                Vector3 nuevaPos = rb.position + movimiento;
+                nuevaPos.y = rb.position.y;
+                Debug.Log("sprint");
+                rb.MovePosition(nuevaPos);
+            }
+            else
+            {
+                Vector3 direccion = transform.forward * moveInput.y + transform.right * moveInput.x;
 
-            rb.MovePosition(nuevaPos);
+                if (direccion.sqrMagnitude > 1f)
+                {
+                    direccion = direccion.normalized;
+                }
+
+                Vector3 movimiento = direccion * velocidadMovimiento * MultiplicadorSprint * Time.fixedDeltaTime;
+                Vector3 nuevaPos = rb.position + movimiento;
+                nuevaPos.y = rb.position.y;
+                Debug.Log(movimiento);
+                rb.MovePosition(nuevaPos);
+            }
         }
         
     }
+    
 }
 

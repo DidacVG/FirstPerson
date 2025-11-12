@@ -40,6 +40,6 @@ public class MovimientoCamara : MonoBehaviour
         rotacionX -= mouseY;
         rotacionX = Mathf.Clamp(rotacionX, -limiteRotacion, limiteRotacion);
 
-        ejeVertical.localEulerAngles = new Vector3(rotacionX, ejeHorizontal.eulerAngles.y, 0f);
+        ejeVertical.localEulerAngles = new Vector3(rotacionX, 0f, 0f);
     }
 }
