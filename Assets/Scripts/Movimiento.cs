@@ -4,13 +4,15 @@ using UnityEngine.InputSystem;
 public class Movimiento : MonoBehaviour
 {
     public DetectarSuelo detectorSuelo;
-    public float velocidadMovimiento = 0f;
-    public float fuerzaSalto = 0f;
+    public float velocidadMovimiento = 5f;
+    public float multiplicadorSprint = 2f;
+    public float velocidadAtrasMultiplicador = 0.5f;
+    public float velocidadLateralMultiplicador = 0.75f;
+    public float fuerzaSalto = 5f;
 
     private Rigidbody rb;
     private Vector2 moveInput = Vector2.zero;
-
-    public float MultiplicadorSprint = 2f;
+    private bool Sprint = false;
 
     void Start()
     {
@@ -20,13 +22,19 @@ public class Movimiento : MonoBehaviour
 
     void Update()
     {
+        // Reset input cada frame
         moveInput = Vector2.zero;
 
+        // Leer teclado (nuevo Input System)
         if (Keyboard.current.wKey.isPressed) moveInput.y += 1f;
-        if (Keyboard.current.sKey.isPressed) moveInput.y -= 0.5f;
-        if (Keyboard.current.aKey.isPressed) moveInput.x -= 0.75f;
-        if (Keyboard.current.dKey.isPressed) moveInput.x += 0.75f;
+        if (Keyboard.current.sKey.isPressed) moveInput.y -= 1f;
+        if (Keyboard.current.aKey.isPressed) moveInput.x -= 1f;
+        if (Keyboard.current.dKey.isPressed) moveInput.x += 1f;
 
+        // Correr con Shift
+        Sprint = Keyboard.current.leftShiftKey.isPressed && moveInput.y > 0f;
+
+        // Salto
         if (detectorSuelo.Grounded && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             rb.AddForce(Vector3.up * fuerzaSalto, ForceMode.Impulse);
@@ -36,41 +44,32 @@ public class Movimiento : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (detectorSuelo.Grounded) 
+        Vector3 direccion = transform.forward * moveInput.y + transform.right * moveInput.x;
+
+        if (direccion.sqrMagnitude > 1f)
+            direccion.Normalize();
+
+        float velocidadActual = velocidadMovimiento;
+
+        if (Sprint)
         {
-            if (Keyboard.current.shiftKey.wasPressedThisFrame)
-            {
-                Vector3 direccion = transform.forward * moveInput.y + transform.right * moveInput.x;
-
-                if (direccion.sqrMagnitude > 1f)
-                {
-                    direccion = direccion.normalized;
-                }
-
-                Vector3 movimiento = direccion * velocidadMovimiento * MultiplicadorSprint * Time.fixedDeltaTime;
-                Vector3 nuevaPos = rb.position + movimiento;
-                nuevaPos.y = rb.position.y;
-                Debug.Log("sprint");
-                rb.MovePosition(nuevaPos);
-            }
-            else
-            {
-                Vector3 direccion = transform.forward * moveInput.y + transform.right * moveInput.x;
-
-                if (direccion.sqrMagnitude > 1f)
-                {
-                    direccion = direccion.normalized;
-                }
-
-                Vector3 movimiento = direccion * velocidadMovimiento * MultiplicadorSprint * Time.fixedDeltaTime;
-                Vector3 nuevaPos = rb.position + movimiento;
-                nuevaPos.y = rb.position.y;
-                Debug.Log(movimiento);
-                rb.MovePosition(nuevaPos);
-            }
+            velocidadActual *= multiplicadorSprint;
         }
-        
+
+        if (moveInput.y < 0f)
+        {
+            velocidadActual *= velocidadAtrasMultiplicador;
+        }
+
+        if (moveInput.x != 0f)
+        {
+            velocidadActual *= velocidadLateralMultiplicador;
+        }
+
+        Vector3 movimiento = direccion * velocidadActual * Time.fixedDeltaTime;
+        Vector3 nuevaPos = rb.position + movimiento;
+
+        rb.MovePosition(nuevaPos);
     }
-    
 }
 

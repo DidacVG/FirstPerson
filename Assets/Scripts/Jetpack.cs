@@ -1,24 +1,72 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class Jetpack : MonoBehaviour
 {
-    private Rigidbody rb;
     public DetectarSuelo detectorSuelo;
-    public float fuerzaJetpack = 0f;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    public Rigidbody rb;
+    public Image jetpackUI;
 
-    // Update is called once per frame
+    public float fuerzaJetpack = 15f;
+
+    public float duracionCombustible = 1f;  // Se gasta en 1s
+    public float velocidadRecarga = 2f;     // 0.5s para recargar
+    public float retardoRecarga = 0.5f;     // Si se gasta del todo
+
+    private float combustible = 1f;
+    private bool agotado = false;
+    private bool puedeRecargar = false;
+    private float temporizadorRecarga = 0f;
+
     void Update()
     {
-        if (detectorSuelo.Grounded == false && Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (jetpackUI != null)
+            jetpackUI.fillAmount = combustible;
+
+        if (detectorSuelo.Grounded)
         {
-            rb.AddForce(Vector3.up * fuerzaJetpack, ForceMode.Impulse);
-            Debug.Log("jetpack");
+            if (agotado)
+            {
+                temporizadorRecarga += Time.deltaTime;
+
+                if (temporizadorRecarga >= retardoRecarga)
+                {
+                    agotado = false;
+                    puedeRecargar = true;
+                }
+            }
+            else
+            {
+                puedeRecargar = true;
+            }
+
+            if (puedeRecargar)
+            {
+                combustible += velocidadRecarga * Time.deltaTime;
+                combustible = Mathf.Clamp01(combustible);
+            }
+        }
+        else
+        {
+            puedeRecargar = false;
+            temporizadorRecarga = 0f;
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (!detectorSuelo.Grounded &&
+            Keyboard.current.spaceKey.isPressed &&
+            combustible > 0f)
+        {
+            rb.AddForce(Vector3.up * fuerzaJetpack, ForceMode.Acceleration);
+
+            combustible -= Time.fixedDeltaTime / duracionCombustible;
+            combustible = Mathf.Clamp01(combustible);
+
+            if (combustible <= 0f)
+                agotado = true;
         }
     }
 }
