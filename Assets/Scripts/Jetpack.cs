@@ -10,9 +10,9 @@ public class Jetpack : MonoBehaviour
 
     public float fuerzaJetpack = 15f;
 
-    public float duracionCombustible = 1f;  // Se gasta en 1s
-    public float velocidadRecarga = 2f;     // 0.5s para recargar
-    public float retardoRecarga = 0.5f;     // Si se gasta del todo
+    public float duracionCombustible = 1f;
+    public float velocidadRecarga = 2f;
+    public float retardoRecarga = 0.5f;
 
     private float combustible = 1f;
     private bool agotado = false;
